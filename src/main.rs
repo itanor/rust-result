@@ -55,6 +55,33 @@ fn question_mark_operator(info: &Info) -> io::Result<()> {
     Ok(())
 }
 
+fn collecting_into_result() {
+    let v = vec![Ok(2), Err("other err!"), Ok(4), Err("err!"), Ok(8)];
+    let res: Result<Vec<_>, &str> = v.into_iter().collect();
+    assert_eq!(res, Err("other err!"));
+    let v = vec![Ok(2), Ok(4), Ok(8)];
+    let res: Result<Vec<_>, &str> = v.into_iter().collect();
+    assert_eq!(res, Ok(vec![2, 4, 8]));
+}
+
+fn build_vec() -> Vec<Result<i32, &'static str>> {
+    vec![Err("error"), Ok(2), Ok(3)]
+}
+
+fn sum_and_product() {
+    let v = vec![Err("error!"), Ok(1), Ok(2), Ok(3), Err("foo")];
+    let res: Result<i32, &str> = v.into_iter().sum();
+    assert_eq!(res, Err("error!"));
+
+    let v = build_vec();
+    let res: Result<i32, &str> = v.into_iter().filter(|r| r.is_ok()).sum();
+    assert_eq!(res, Ok(5));
+
+    let v: Vec<Result<i32, &str>> = vec![Ok(1), Ok(2), Ok(21)];
+    let res: Result<i32, &str> = v.into_iter().product();
+    assert_eq!(res, Ok(42));
+}
+
 fn main() {
     let version = parse_version(&[1, 2, 3, 4]);
     match version {
@@ -72,4 +99,6 @@ fn main() {
         rating: 5,
     };
     question_mark_operator(&info).expect("error on write infos");
+    collecting_into_result();
+    sum_and_product();
 }
